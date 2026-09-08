@@ -1,0 +1,52 @@
+# Flutter / Dart
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub/
+**/.pub-cache/
+
+**/build/
+**/coverage/
+
+**/ios/Flutter/.last_build_id
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+**/doc/api/
+
+# Flutter generated files
+**/*.symbols
+**/*.symbols.zip
+**/*.map.json
+**/.metadata
+**/.widget_preview/
+
+
+# Node / TypeScript
+**/node_modules/
+**/dist/
+**/.env
+**/.env.*
+!.env.example
+
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+.vscode/
+
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.history/
+.svn/
+.swiftpm/
