@@ -44,7 +44,7 @@ export async function signup(req: Request<{}, {}, SignupBody>, res: Response) {
       password: hashedPassword,
     };
     const [user] = await db.insert(users).values(newUser).returning();
-    res.status(201).json({ user, message: "User created successfully" });
+    res.status(201).json({ ...user, message: "User created successfully" });
   } catch (error) {
     console.error("Error during signup:", error);
     res.status(500).json({ error, message: "Internal server error" });
@@ -78,7 +78,7 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
 
     res
       .status(200)
-      .json({ token, user: existingUser, message: "Login successful" });
+      .json({ token, ...existingUser, message: "Login successful" });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error, message: "Internal server error" });
@@ -86,5 +86,5 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
 }
 
 export async function getMe(req: AuthRequest, res: Response) {
-    return res.status(200).json({ user: req.user });
+  return res.status(200).json({ ...req.user, token: req.token, message: "User fetched successfully" });
 }
