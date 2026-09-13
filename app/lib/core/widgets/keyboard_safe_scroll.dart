@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 class KeyboardSafeScroll extends StatelessWidget {
   final Widget child;
-
   const KeyboardSafeScroll({super.key, required this.child});
 
   @override

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-ThemeData gbobalTheme(BuildContext context) => ThemeData(
+ThemeData globalTheme(BuildContext context) => ThemeData(
   useMaterial3: true,
-  textTheme: GoogleFonts.urbanistTextTheme(Theme.of(context).textTheme),
+  fontFamily: 'Cera Pro',
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
 
   inputDecorationTheme: InputDecorationTheme(
@@ -29,8 +28,13 @@ ThemeData gbobalTheme(BuildContext context) => ThemeData(
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: Colors.black,
-      minimumSize: const Size(double.infinity, 60),
+      minimumSize: const Size(double.infinity, 50),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
     ),
   ),
 );
+
+class AppColors {
+  static const Color primary = Colors.deepOrange;
+  static const Color primaryMuted = Color.fromRGBO(254, 232, 206, 1);
+}

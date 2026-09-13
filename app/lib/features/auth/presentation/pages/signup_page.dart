@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_manager/core/utils/utils.dart';
 import 'package:task_manager/extension.dart';
 import 'package:task_manager/features/auth/cubit/auth_cubit.dart';
-import 'package:task_manager/features/auth/helpers/form_validations.dart';
-import 'package:task_manager/features/auth/pages/login_page.dart';
-import 'package:task_manager/widgets/keyboard_safe_scroll.dart';
+import 'package:task_manager/features/auth/presentation/pages/login_page.dart';
+import 'package:task_manager/core/widgets/keyboard_safe_scroll.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

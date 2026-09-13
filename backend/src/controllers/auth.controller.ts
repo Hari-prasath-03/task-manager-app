@@ -1,6 +1,6 @@
 import { db } from "../db";
 import { eq } from "drizzle-orm";
-import { users, type NewUser } from "../db/schemas";
+import { users, type NewUser, type User } from "../db/schemas";
 import type { Request, Response } from "express";
 import { hashPassword, verifyPassword, generateJwtToken } from "../utils";
 import type { AuthRequest } from "../middlewares/auth.middleware";
@@ -14,6 +14,12 @@ interface SignupBody {
 interface LoginBody {
   email: string;
   password: string;
+}
+
+function removePassword(user?: User) {
+  if (!user) return user;
+  const { password: _password, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 }
 
 export async function signup(req: Request<{}, {}, SignupBody>, res: Response) {
@@ -44,7 +50,9 @@ export async function signup(req: Request<{}, {}, SignupBody>, res: Response) {
       password: hashedPassword,
     };
     const [user] = await db.insert(users).values(newUser).returning();
-    res.status(201).json({ ...user, message: "User created successfully" });
+    res
+      .status(201)
+      .json({ ...removePassword(user), message: "User created successfully" });
   } catch (error) {
     console.error("Error during signup:", error);
     res.status(500).json({ error, message: "Internal server error" });
@@ -76,9 +84,11 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
 
     const token = generateJwtToken(existingUser.id);
 
-    res
-      .status(200)
-      .json({ token, ...existingUser, message: "Login successful" });
+    res.status(200).json({
+      token,
+      ...removePassword(existingUser),
+      message: "Login successful",
+    });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ error, message: "Internal server error" });
@@ -86,5 +96,9 @@ export async function login(req: Request<{}, {}, LoginBody>, res: Response) {
 }
 
 export async function getMe(req: AuthRequest, res: Response) {
-  return res.status(200).json({ ...req.user, token: req.token, message: "User fetched successfully" });
+  return res.status(200).json({
+    ...removePassword(req.user),
+    token: req.token,
+    message: "User fetched successfully",
+  });
 }

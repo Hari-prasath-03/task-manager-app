@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_manager/core/utils/utils.dart';
 import 'package:task_manager/extension.dart';
 import 'package:task_manager/features/auth/cubit/auth_cubit.dart';
-import 'package:task_manager/features/auth/helpers/form_validations.dart';
-import 'package:task_manager/features/auth/pages/signup_page.dart';
-import 'package:task_manager/features/home/home_page.dart';
-import 'package:task_manager/widgets/keyboard_safe_scroll.dart';
+import 'package:task_manager/features/auth/presentation/pages/signup_page.dart';
+import 'package:task_manager/features/home/presentation/pages/home_page.dart';
+import 'package:task_manager/core/widgets/keyboard_safe_scroll.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -44,11 +44,7 @@ class _LoginPageState extends State<LoginPage> {
               ScaffoldMessenger.of(context)
                   .showSnackBar(SnackBar(content: Text(state.error)));
             } else if (state is AuthLoggedIn) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                HomePage.route(),
-                (_) => false,
-              );
+              context.navigator.pushAndRemoveUntil(const HomePage());
             }
           },
           builder: (context, state) {

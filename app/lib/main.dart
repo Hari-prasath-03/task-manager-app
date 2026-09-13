@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:task_manager/core/di/injection_container.dart';
 import 'package:task_manager/features/auth/cubit/auth_cubit.dart';
-import 'package:task_manager/features/auth/pages/login_page.dart';
-import 'package:task_manager/features/home/home_page.dart';
+import 'package:task_manager/features/auth/presentation/pages/login_page.dart';
+import 'package:task_manager/features/home/presentation/pages/home_page.dart';
 import 'package:task_manager/themes.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initDependencies();
+
   runApp(
     MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => AuthCubit())],
-      child: MyApp(),
+      providers: [
+        BlocProvider(create: (_) => AuthCubit(authRemoteRepository: sl())),
+      ],
+      child: const MyApp(),
     ),
   );
 }
@@ -33,7 +39,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Task Manager',
       debugShowCheckedModeBanner: false,
-      theme: gbobalTheme(context),
+      theme: globalTheme(context),
       home: BlocBuilder<AuthCubit, AuthState>(
         builder: (context, state) {
           if (state is AuthLoggedIn) {
