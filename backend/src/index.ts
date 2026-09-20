@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import authRouter from "./routes/auth.route";
+import taskRoutes from "./routes/task.route";
 
 const PORT = 8000;
 
@@ -15,6 +16,7 @@ app.use(
 );
 
 app.use("/auth", authRouter);
+app.use("/tasks", taskRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello, World!");

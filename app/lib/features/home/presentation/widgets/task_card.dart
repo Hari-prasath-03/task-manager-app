@@ -26,8 +26,9 @@ class TaskCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 8),
           Text(description, maxLines: 2, style: const TextStyle(fontSize: 14)),
         ],
       ),

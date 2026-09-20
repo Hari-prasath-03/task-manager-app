@@ -10,8 +10,8 @@ This is a monorepo with two parts:
 - **`backend/`** — a REST API (Node.js + TypeScript + Express + Drizzle ORM + PostgreSQL), containerized with Docker.
 
 **Status of features:**
-- The backend exposes an **auth** module (signup, login, and a protected "me" endpoint) using JWT.
-- The mobile app has an **auth feature** built out — signup and login screens (UI + client-side validation), a shared custom theme, and a reusable keyboard-safe scroll widget. The UI is wired up, but the screens aren't connected to the backend API yet.
+- The backend exposes an **auth** module (signup, login, and a protected "me" endpoint) using JWT, and a **task** module (CRUD operations — create, list, update, delete) with all routes protected.
+- The mobile app has **auth** and **task management** features fully wired to the backend API. Auth includes signup/login screens with form validation. Task management includes a home page with weekly date filtering, a task creation form with color picker, and colored task cards. State management uses the Cubit pattern (flutter_bloc), with offline-first caching via SQLite.
 
 ---
 
@@ -50,6 +50,12 @@ This is a monorepo with two parts:
 For a Flutter/Dart project.
 
 - **Flutter** — the UI framework (with `cupertino_icons` and `google_fonts` dependencies).
+- **flutter_bloc** — state management via the Cubit pattern.
+- **dio** — HTTP client for API communication.
+- **sqflite** — local SQLite database for offline data caching.
+- **get_it** — service locator for dependency injection.
+- **intl** — date/time formatting.
+- **flex_color_picker** — color picker widget for task creation.
 - **Dev/analysis:** `flutter_test` and `flutter_lints`.
 
 ---
@@ -58,41 +64,65 @@ For a Flutter/Dart project.
 
 ```
 task-manager/
-├── app/                      # Flutter mobile app
+├── app/                          # Flutter mobile app
 │   ├── lib/
-│   │   ├── main.dart         # App entry point (MaterialApp)
-│   │   ├── themes.dart       # Global theme (Google Fonts, black color scheme)
-│   │   ├── extension.dart    # BuildContext extensions (e.g. context.navigator)
-│   │   ├── features/         # Feature-based organization
-│   │   │   └── auth/         # Auth feature
-│   │   │       ├── pages/     # Screen widgets (signup_page, login_page)
-│   │   │       └── form_validations.dart  # Shared field validation helpers
-│   │   └── widgets/          # Reusable widgets (e.g. keyboard_safe_scroll)
-│   └── pubspec.yaml          # Flutter / Dart dependencies
-│
-├── backend/                  # REST API
-│   ├── src/
-│   │   ├── controllers/      # Route handlers (e.g. auth.controller.ts)
-│   │   ├── db/               # DB connection + Drizzle schemas
-│   │   │   └── schemas/      # Table definitions (e.g. users.ts)
-│   │   ├── middlewares/      # Express middleware (e.g. auth.middleware.ts)
-│   │   ├── routes/           # API route definitions (e.g. auth.route.ts)
-│   │   ├── utils/            # Helpers (JWT, password hashing)
-│   │   └── index.ts          # App entry point (Express server)
+│   │   ├── main.dart             # App entry point (MultiBlocProvider)
+│   │   ├── themes.dart           # Global theme + AppColors (Google Fonts, Cera Pro)
+│   │   ├── extension.dart        # BuildContext extensions
+│   │   │
+│   │   ├── core/                 # Shared infrastructure
+│   │   │   ├── di/               # Dependency injection (get_it)
+│   │   │   │   └── injection_container.dart
+│   │   │   ├── network/          # HTTP client (Dio singleton)
+│   │   │   │   └── dio_client.dart
+│   │   │   ├── services/         # Shared services (SharedPreferences)
+│   │   │   │   └── sp_service.dart
+│   │   │   ├── utils/            # Helpers (validation, date gen, hex/color)
+│   │   │   │   └── utils.dart
+│   │   │   └── widgets/          # Reusable widgets (keyboard_safe_scroll)
+│   │   │
+│   │   └── features/
+│   │       ├── auth/             # Authentication feature
+│   │       │   ├── cubit/        # AuthCubit + AuthState
+│   │       │   ├── data/repository/  # AuthRemoteRepository + AuthLocalRepository
+│   │       │   ├── domain/       # UserModel
+│   │       │   └── presentation/pages/  # login_page, signup_page
+│   │       │
+│   │       └── home/             # Task management feature
+│   │           ├── cubit/        # TaskCubit + TaskState
+│   │           ├── data/repository/  # TaskRemoteRepository + TaskLocalRepository
+│   │           ├── domain/       # TaskModel
+│   │           └── presentation/
+│   │               ├── pages/    # home_page, add_new_task_page
+│   │               └── widgets/  # date_selector, task_card
 │   │
-│   ├── Dockerfile            # Builds the backend image
-│   ├── docker-compose.yml    # Spins up backend + PostgreSQL
-│   ├── drizzle.config.ts     # Drizzle CLI config (schema/migration paths)
-│   ├── tsconfig.json         # TypeScript compiler config
-│   ├── package.json          # Backend dependencies & scripts
-│   ├── pnpm-lock.yaml        # Locked dependency versions
-│   └── .env                  # Local environment variables (NEVER commit)
+│   ├── assets/fonts/             # Cera Pro font files
+│   └── pubspec.yaml
 │
-├── .gitignore                # Ignored files (node_modules, dist, .env, ...)
-└── README.md                 # This file
+├── backend/                      # REST API
+│   ├── src/
+│   │   ├── controllers/          # Route handlers (auth, task)
+│   │   ├── db/
+│   │   │   ├── schemas/          # Drizzle table definitions (users, tasks)
+│   │   │   └── index.ts          # DB connection
+│   │   ├── middlewares/          # Express middleware (auth)
+│   │   ├── routes/               # API routes (auth, task)
+│   │   ├── utils/                # Helpers (JWT, password hashing, truncate)
+│   │   └── index.ts              # App entry point (Express server)
+│   │
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   ├── drizzle.config.ts
+│   ├── tsconfig.json
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   └── .env
+│
+├── .gitignore
+└── README.md
 ```
 
-**Backend organization pattern:** the API follows a clean-ish separation — `routes` define the URL paths, `controllers` hold the business logic, `middlewares` handle auth/validation, and `db/` owns all database concerns. Entry point is `backend/src/index.ts`.
+**Backend organization pattern:** the API follows a clean separation — `routes` define the URL paths, `controllers` hold the business logic, `middlewares` handle auth/validation, and `db/` owns all database concerns (schemas are split per-table in `db/schemas/`). Entry point is `backend/src/index.ts`.
 
 ---
 
@@ -182,6 +212,25 @@ pnpm drizzle-kit push
 | `POST` | `/auth/signup` | Create a new user account. | No |
 | `POST` | `/auth/login` | Log in and receive a JWT. | No |
 | `GET` | `/auth/me` | Get the current logged-in user. | Yes (Bearer token) |
+| `POST` | `/tasks` | Create a new task. | Yes (Bearer token) |
+| `GET` | `/tasks` | List all tasks for the logged-in user. | Yes (Bearer token) |
+| `PUT` | `/tasks/:id` | Update a task by ID. | Yes (Bearer token) |
+| `DELETE` | `/tasks/:id` | Delete a task by ID. | Yes (Bearer token) |
 
 ---
+
+## Architecture
+
+The Flutter app follows a **feature-based layered architecture**:
+
+- **`core/`** — shared infrastructure: dependency injection (`get_it`), networking (`Dio` singleton), services (`SharedPreferences`), utilities, and reusable widgets.
+- **`features/<name>/`** — each feature is self-contained with:
+  - `cubit/` — state management using the Cubit pattern (`flutter_bloc`).
+  - `data/repository/` — paired local (SQLite) and remote (Dio) data sources.
+  - `domain/` — data models.
+  - `presentation/` — pages and widgets.
+
+**Data flow:** Pages consume Cubit states via `BlocBuilder`/`BlocConsumer`. Cubits call repositories, which attempt remote API calls first and fall back to local SQLite cache when offline. All service registration is centralized in `injection_container.dart` via `get_it`.
+
+The backend follows a clean separation: `routes` define URL paths, `controllers` hold business logic, `middlewares` handle auth, and `db/` owns all database concerns. Drizzle schemas are organized per-table in `db/schemas/`.
 

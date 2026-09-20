@@ -1,8 +1,12 @@
 import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:task_manager/core/utils/utils.dart';
 import 'package:task_manager/core/widgets/keyboard_safe_scroll.dart';
+import 'package:task_manager/extension.dart';
+import 'package:task_manager/features/home/cubit/task_cubit.dart';
+import 'package:task_manager/features/home/presentation/pages/home_page.dart';
 import 'package:task_manager/themes.dart';
 
 class AddNewTaskPage extends StatefulWidget {
@@ -22,7 +26,12 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
 
   void addTask() {
     if (!_formKey.currentState!.validate()) return;
-    // Add task logic here
+    context.read<TaskCubit>().addTask(
+      title: titleController.text,
+      description: descriptionController.text,
+      hexColor: rgbToHex(selectedColor),
+      dueDate: selectedDate,
+    );
   }
 
   @override
@@ -60,52 +69,70 @@ class _AddNewTaskPageState extends State<AddNewTaskPage> {
           ),
         ],
       ),
-      body: KeyboardSafeScroll(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                TextFormField(
-                  decoration: const InputDecoration(hintText: 'Task Title'),
-                  controller: titleController,
-                  validator: (value) => validateField(value),
+      body: BlocConsumer<TaskCubit, TaskState>(
+        listener: (context, state) {
+          if (state is TaskError) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(state.message)));
+          } else if (state is AddTaskSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Task added successfully!')),
+            );
+            context.navigator.pushAndRemoveUntil(const HomePage());
+          }
+        },
+        builder: (context, state) {
+          if (state is TaskLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return KeyboardSafeScroll(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      decoration: const InputDecoration(hintText: 'Task Title'),
+                      controller: titleController,
+                      validator: (value) => validateField(value),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        hintText: 'Task description',
+                      ),
+                      controller: descriptionController,
+                      validator: (value) => validateField(value),
+                    ),
+                    const SizedBox(height: 10),
+                    ColorPicker(
+                      heading: const Text('Pick a color'),
+                      subheading: const Text('Select a different shade'),
+                      padding: EdgeInsets.all(0),
+                      onColorChanged: (Color color) {
+                        setState(() {
+                          selectedColor = color;
+                        });
+                      },
+                      color: selectedColor,
+                      pickersEnabled: const {ColorPickerType.wheel: true},
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      onPressed: addTask,
+                      child: const Text(
+                        'Add Task',
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    hintText: 'Task description',
-                  ),
-                  controller: descriptionController,
-                  validator: (value) => validateField(value),
-                ),
-                const SizedBox(height: 10),
-                ColorPicker(
-                  heading: const Text('Pick a color'),
-                  subheading: const Text('Select a different shade'),
-                  padding: EdgeInsets.all(0),
-                  onColorChanged: (Color color) {
-                    setState(() {
-                      selectedColor = color;
-                    });
-                  },
-                  color: selectedColor,
-                  pickersEnabled: const {ColorPickerType.wheel: true},
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: addTask,
-                  child: const Text(
-                    'Add Task',
-                    style: TextStyle(fontSize: 14, color: Colors.white),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

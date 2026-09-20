@@ -4,7 +4,14 @@ import 'package:task_manager/core/utils/utils.dart';
 import 'package:task_manager/themes.dart';
 
 class DateSelector extends StatefulWidget {
-  const DateSelector({super.key});
+  final DateTime selectedDate;
+  final Function(DateTime) onDateSelected;
+
+  const DateSelector({
+    super.key,
+    required this.selectedDate,
+    required this.onDateSelected,
+  });
 
   @override
   State<DateSelector> createState() => _DateSelectorState();
@@ -12,14 +19,6 @@ class DateSelector extends StatefulWidget {
 
 class _DateSelectorState extends State<DateSelector> {
   int weekOffset = 0;
-  DateTime selectedDate = DateTime.now();
-
-  bool _isSameDate(DateTime date) {
-    return DateFormat('d').format(date) ==
-            DateFormat('d').format(selectedDate) &&
-        DateFormat('M').format(date) == DateFormat('M').format(selectedDate) &&
-        DateFormat('y').format(date) == DateFormat('y').format(selectedDate);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,36 +65,39 @@ class _DateSelectorState extends State<DateSelector> {
               itemCount: weekDates.length,
               itemBuilder: (context, idx) {
                 final date = weekDates[idx];
-                bool isSelected = _isSameDate(date);
+                bool isSelected = DateUtils.isSameDay(widget.selectedDate, date);
 
-                return Container(
-                  width: 70,
-                  margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade200),
-                    borderRadius: BorderRadius.circular(8),
-                    color: isSelected ? AppColors.primary : null,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        DateFormat('d').format(date),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.black87,
+                return GestureDetector(
+                  onTap: () => widget.onDateSelected(date),
+                  child: Container(
+                    width: 70,
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade200),
+                      borderRadius: BorderRadius.circular(8),
+                      color: isSelected ? AppColors.primary : null,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DateFormat('d').format(date),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? Colors.white : Colors.black87,
+                          ),
                         ),
-                      ),
-                      Text(
-                        DateFormat('E').format(date),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.black87,
+                        Text(
+                          DateFormat('E').format(date),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected ? Colors.white : Colors.black87,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },

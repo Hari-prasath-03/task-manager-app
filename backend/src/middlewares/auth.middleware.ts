@@ -4,7 +4,7 @@ import { users, type User } from "../db/schemas";
 import type { Request, Response, NextFunction } from "express";
 import { verifyJwtToken } from "../utils";
 
-export interface AuthRequest extends Request {
+export interface AuthRequest<TBody = any> extends Request<any, any, TBody> {
   token?: string;
   user?: User;
 }
